@@ -19,19 +19,17 @@ window.findNRooksSolution = function(n) {
   var count = 0;
   var recursiveFunc = function(board){
     for(var i = 0;  i < board.len; i++){
-      for(var j = 0; j < board.len; j++){
-        if(!board.getIJ(i, j)){
-          board.setIJ(i, j, 1);
-          if(checkCollision(board, i, j)) {
-            board.setIJ(i, j, 0);
-          }
-          else{
-            count++;
-            if(count === n){
-              return board;
-            }else{
-              return recursiveFunc(board);
-            }
+      if(!board.getIJ(i, i)){
+        board.setIJ(i, i, 1);
+        if(checkCollision(board, i, i)) {
+          board.setIJ(i, i, 0);
+        }
+        else{
+          count++;
+          if(count === n){
+            return board;
+          }else{
+            return recursiveFunc(board);
           }
         }
       }
@@ -53,9 +51,30 @@ window.findNRooksSolution = function(n) {
 
 // return the number of nxn chessboards that exist, with n rooks placed such that none of them can attack each other
 window.countNRooksSolutions = function(n) {
-  var solutionCount = undefined; //fixme
+  var board = new Board({n:n});
+  var solutionCount = 0;
+  var rowIndex = 0;
 
-  console.log('Number of solutions for ' + n + ' rooks:', solutionCount);
+  var recursiveFunc = function(board, rowIndex){
+    if (rowIndex === n){
+      solutionCount++;
+      return;
+    }
+    var row = board.get(rowIndex);
+    for (var j = 0; j < n; j++){
+      row[j] = 1;
+      if (!checkCollision(board, rowIndex, j)){
+        recursiveFunc(board, rowIndex + 1);
+      }
+      row[j] = 0;
+    }
+  };
+
+  var checkCollision = function(board, i, j){
+    return board.hasRowConflictAt(i) || board.hasColConflictAt(j);
+  };
+
+  recursiveFunc(board, rowIndex);
   return solutionCount;
 };
 
@@ -118,47 +137,30 @@ window.findNQueensSolution = function(n) {
 
 // return the number of nxn chessboards that exist, with n queens placed such that none of them can attack each other
 window.countNQueensSolutions = function(n) {
-  var empty = makeEmptyMatrix(n);
-  var board = new Board(empty);
-  var count = 0;
+  var board = new Board({n:n});
   var solutionCount = 0;
-  var stack = [];
-  var recursiveFunc = function(board){
-    for(var i = 0;  i < board.len; i++){
-      for(var j = 0; j < board.len; j++){
-        if(!board.getIJ(i, j)){
-          board.setIJ(i, j, 1);
-          if(checkCollision(board, i, j)) {
-            board.setIJ(i, j, 0);
-          }
-          else{
-            stack.push([i,j]);
-            count++;
-            if(count === n){
-              solutionCount++;
-            }else{
-              recursiveFunc(board);
-            }
-          }
-        }
+  var rowIndex = 0;
+
+  var recursiveFunc = function(board, rowIndex){
+    if (rowIndex === n){
+      solutionCount++;
+      return;
+    }
+    var row = board.get(rowIndex);
+    for (var j = 0; j < n; j++){
+      row[j] = 1;
+      if (!checkCollision(board, rowIndex, j)){
+        recursiveFunc(board, rowIndex + 1);
       }
+      row[j] = 0;
     }
-    if (stack.length > 0){
-      var coor = stack.pop();
-      board.get(coor[0])[coor[1]] = 0;
-      count--;
-    }
-    // loop through all emtpy spaces (or all spaces and check if empty)
-    // see if we can add
-    // if not - continue
-    // if no collisions call recursiveFunc(board) after adding piece
   };
+
   var checkCollision = function(board, i, j){
     return board.hasRowConflictAt(i) || board.hasColConflictAt(j) || board.hasMajorDiagonalConflictAt(i-j) || board.hasMinorDiagonalConflictAt(i+j);
   };
-  recursiveFunc(board);
-  console.log('Single solution for ' + n + ' queens:', solutionCount);
-  if (n===0){ return 1 };
+
+  recursiveFunc(board, rowIndex);
   return solutionCount;
 
 };
@@ -171,3 +173,57 @@ var makeEmptyMatrix = function(n) {
     });
   });
 };
+
+// // return the number of nxn chessboards that exist, with n queens placed such that none of them can attack each other
+// window.countNQueensSolutions = function(n) {
+//   var solutions = {};
+//   var empty = makeEmptyMatrix(n);
+//   var board = new Board(empty);
+//   var count = 0;
+//   var solutionCount = 0;
+//   var stack = [];
+//   var recursiveFunc = function(board){
+//     for(var i = 0;  i < board.len; i++){
+//       for(var j = 0; j < board.len; j++){
+//         console.log(i,j,count);
+//         if(!board.getIJ(i, j)){
+//           board.setIJ(i, j, 1);
+//           if(checkCollision(board, i, j)) {
+//             board.setIJ(i, j, 0);
+//           }
+//           else{
+//             stack.push([i,j]);
+//             count++;
+//             if(count === n){
+//               var temp_key = JSON.stringify(board);
+//               console.log(temp_key);
+//               if (!solutions[temp_key]){
+//                 solutions[temp_key] = true;
+//                 solutionCount++;
+//               }
+//             }else{
+//               //recursiveFunc(board);
+//             }
+//           }
+//         }
+//       }
+//     }
+//     if (stack.length > 0){
+//       var coor = stack.pop();
+//       board.get(coor[0])[coor[1]] = 0;
+//       count--;
+//     }
+//     // loop through all emtpy spaces (or all spaces and check if empty)
+//     // see if we can add
+//     // if not - continue
+//     // if no collisions call recursiveFunc(board) after adding piece
+//   };
+//   var checkCollision = function(board, i, j){
+//     return board.hasRowConflictAt(i) || board.hasColConflictAt(j) || board.hasMajorDiagonalConflictAt(i-j) || board.hasMinorDiagonalConflictAt(i+j);
+//   };
+//   recursiveFunc(board);
+//   console.log('Single solution for ' + n + ' queens:', solutionCount);
+//   if (n===0){ return 1 };
+//   return solutionCount;
+
+// };
